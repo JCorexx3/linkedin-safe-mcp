@@ -1,0 +1,20 @@
+{
+  "name": "linkedin-safe-mcp",
+  "version": "1.0.0",
+  "description": "Local draft-only LinkedIn MCP; publishing disabled pending account-identity proof",
+  "private": true,
+  "engines": {"node": ">=20"},
+  "scripts": {
+    "test": "node --test",
+    "build": "node --check src/core.js && node --check src/server.js && node --check src/cli.js",
+    "start": "node src/server.js",
+    "cli": "node src/cli.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "type": "module",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.2"
+  }
+}

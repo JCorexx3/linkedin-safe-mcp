@@ -1,0 +1,16 @@
+node_modules/
+.env
+.env.*
+!.env.example
+*.token
+*.secret
+*.key
+*.pem
+*.p12
+*.pfx
+*.db
+*.sqlite*
+drafts.json
+.linkedin-safe-mcp/
+coverage/
+.DS_Store
