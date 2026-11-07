@@ -1,12 +1,10 @@
 ---
 name: linkedin-safe-posting
-description: Draft LinkedIn posts locally; publishing is disabled.
+description: Create and review local LinkedIn drafts without transmitting them.
 ---
 
-# LinkedIn Safe Posting
+# Local LinkedIn Draft Workflow
 
-Use this local `linkedin-safe-mcp` only for drafting. MCP tools are draft-only. Do not invoke or enable publishing: the CLI publish command is deliberately fail-closed.
+Use `draft_post`, `draft_comment`, `draft_reaction`, `draft_event`, and `draft_image_post` to save pending local drafts; use `list_pending` to review them. Supply only fields accepted by each tool. Reaction values are limited to the supported enum. Image-post drafts contain text metadata only; do not supply filesystem paths or expect image reads/uploads.
 
-No LinkedIn account is connected or tested. A runtime environment token is not a vault; do not request or provide a real token until separately approved. OIDC `userinfo.sub` is pairwise/app-specific and is not proven equivalent to numeric `urn:li:person:ID`; do not claim account identity binding or infer a target account. Publishing stays disabled until an authoritative documented binding to the exact author URN is available and independently reviewed.
-
-LinkedIn app approval, API version compatibility, and publishing scopes (including `w_member_social` as applicable) are unverified prerequisites. No live publishing or other account action is authorized. Never scrape, message, connect, comment, or react.
+These tools do not connect to LinkedIn or cause external effects. There are no live post/comment/reaction/event, upload, delete, profile, OAuth, or token capabilities. Never request or store credentials. Draft approval is local only and does not grant permission for publishing or other network action. Do not claim a draft was posted. The CLI publish operation is fail-closed.

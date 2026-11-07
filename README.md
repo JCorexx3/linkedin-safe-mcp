@@ -1,21 +1,37 @@
 # LinkedIn Safe MCP
 
-Local MCP provides draft-only personal-profile post storage; it has no publishing tool. Drafts are stored locally at `~/.linkedin-safe-mcp/drafts.json`.
+Local MCP for creating pending post, comment, reaction, event, and image-post metadata drafts. It does not connect to LinkedIn, publish, upload/read images, or perform account actions. The MCP server refuses to start without an explicit `LINKEDIN_SAFE_DRAFTS_FILE` path. Configure a different local file per agent: this avoids accidental sharing, but is **not** an access-control boundary against agents that can read each other's files. The CLI defaults to `~/.linkedin-safe-mcp/drafts.json` and does not share that file with the MCP unless explicitly configured.
 
 ## Run
 
-Node.js 20+: `npm install`, then `npm start`. CLI draft operations: `npm run cli -- draft "Post text"`, `npm run cli -- list`, and `npm run cli -- status <id>`. `publish <id>` is intentionally disabled and will fail closed.
+Node.js 20+: `npm ci`, then set `LINKEDIN_SAFE_DRAFTS_FILE` to an absolute, per-agent `drafts.json` path and run `npm start`. MCP tools: `draft_post`, `draft_comment`, `draft_reaction`, `draft_event`, `draft_image_post`, and `list_pending`. The image-post tool stores caption/alt-text/label metadata only; it accepts no path and reads no file. CLI draft operations: `npm run cli -- draft "Post text"`, `npm run cli -- list`, and `npm run cli -- status <id>`. `publish <id>` remains intentionally disabled and fails closed.
 
-The code does not connect a LinkedIn account, and no real token or live LinkedIn request has been used. `LINKEDIN_ACCESS_TOKEN`, if set, is a runtime environment variable—not a vault or secure credential store. Do not provide a real token; credential use has not been approved or tested.
+## Install in an MCP-capable agent
 
-## Identity and publishing safety
+Install dependencies locally with Node.js 20+ (`npm ci`). Configure the agent's MCP client to launch `node` with the absolute path to this repository's `src/server.js` as its argument (stdio transport). Set a **different absolute drafts file for each agent**, outside the public source repository; do not put API keys or tokens there. Example generic JSON (replace both paths):
 
-There is no valid publish path. LinkedIn's Sign In with LinkedIn (OIDC) metadata declares pairwise subject identifiers, so `userinfo.sub` may be app-specific and cannot be assumed to equal a numeric `urn:li:person:ID`. No verified LinkedIn-authorized mapping to the exact author URN is implemented. Consequently, this project does not send a Posts API POST, does not claim the token belongs to a configured person URN, and does not publish even after human confirmation. Do not restore publishing without a documented, verified identity binding and explicit review.
+```json
+{
+  "mcpServers": {
+    "linkedin-safe-mcp": {
+      "command": "node",
+      "args": ["C:/path/to/LinkedIn Safe MCP/src/server.js"],
+      "env": {"LINKEDIN_SAFE_DRAFTS_FILE": "C:/path/to/agent-private/drafts.json"}
+    }
+  }
+}
+```
 
-LinkedIn Posts API access/scope eligibility (including `w_member_social` where applicable), app approval, and API version compatibility remain unverified prerequisites. The official OIDC documentation describes pairwise subjects: https://learn.microsoft.com/en-us/linkedin/consumer/integrations/self-serve/sign-in-with-linkedin-v2
+This JSON is illustrative, **not** a verified install recipe for every MCP client. Use the client's supported MCP setup flow rather than hand-editing protected config, and verify the six listed tools appear after registration. Register the skill instructions separately if the agent supports skills: `skills/linkedin-safe-posting/SKILL.md`. Give each agent a distinct file and filesystem permission boundary where possible; the server does not prove agents are isolated. This only installs local draft tools; it does not add live LinkedIn functionality.
 
-Draft state uses a cross-process fail-closed lock and atomic file replacement. A process crash may leave a stale lock; remove it only after confirming no process is using the store. A `sending` claim is non-retryable by design.
+## Safety boundary
+
+All create tools only save local pending drafts. No LinkedIn network requests, OAuth, tokens, live comments/reactions/events, image uploads, delete operations, or publishing are supported. The original project also exposed profile/email, auth/session, rate-limit, post-history, and event reads; **none of those account functions are in this repository**. Do not provide credentials. Approval to create a draft is not approval to transmit or act on it. Human review and a separately authorized live integration would be required for any external action; this repository intentionally does not implement one. In particular, LinkedIn's OIDC `userinfo.sub` can be pairwise and is not independently verified as the post author `urn:li:person:ID`; app access, permissions, and API version compatibility also remain unverified.
+
+This source repository is public. Never commit a real draft, credential, or private client data to it; drafts stay in local per-agent files.
+
+Draft payload fields are allowlisted and validated; the image-draft tool rejects file-path fields and never reads a media file. `LINKEDIN_SAFE_DRAFTS_FILE` is a separate, trusted local configuration path—pointing it at an unrelated `drafts.json` is a configuration error. The store rejects unrecognized formats rather than overwriting them, and migrates earlier valid draft arrays on the next write. Store writes use a cross-process lock and atomic replacement. A process crash may leave a stale lock; remove it only after confirming no process uses the store.
 
 ## Verify
 
-Run `npm test` and `npm run build`. Tests use fake/local data only. Build syntax-checks every file in `src/`.
+Run `npm test` and `npm run build`. Tests use fake/local data only.
